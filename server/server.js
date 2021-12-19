@@ -40,6 +40,8 @@ db.once('open', () => {
             pusher.trigger('messages', 'inserted', {
                 name: messageDetails.name,
                 message: messageDetails.message,
+                timestamp: messageDetails.timestamp,
+                recieved: messageDetails.recieved,
             });
         } else {
             console.error('Error triggering pusher');
@@ -51,14 +53,14 @@ db.once('open', () => {
 * Middleware
 */
 app.use(express.json());
-app.use(cors);
+// app.use(cors);
 
-// // Look more into (problematic security-wise)
-// app.use((req, res, next) => {
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Headers', '*');
-//     next();
-// });
+// Look more into (problematic security-wise)
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    next();
+});
 
 /*
 * End points 
