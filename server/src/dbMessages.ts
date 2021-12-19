@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const messageContentSchema = mongoose.Schema({
+const messageContentSchema = new mongoose.Schema({
     message: String,
     name: String,
     timestamp: String,

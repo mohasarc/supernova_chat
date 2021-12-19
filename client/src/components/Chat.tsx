@@ -4,10 +4,18 @@ import React, { useState } from 'react'
 import './Chat.css'
 import axios from '../axios';
 
-function Chat({ messages }) {
+interface Message {
+    message: string,
+    received: boolean,
+    timestamp: string,
+    name: string
+}
+
+function Chat({ messages }: {messages: Message[]}) {
     const [input, setInput] = useState('');
 
-    const sendMessage = async e => {
+    const sendMessage = async (e: any) => {
+    
         e.preventDefault();
 
         await axios.post('/api/v1/messages/new', {
@@ -42,7 +50,7 @@ function Chat({ messages }) {
                 </div>
             </div>
             <div className='chat__body'>
-                {messages.map((message) => {
+                {messages.map((message: Message) => {
                     return (
                         <p className={`chat__message ${message.received && 'chat__reciever'}`}>
                             <span className='chat__name'>{message.name}</span>
@@ -56,7 +64,7 @@ function Chat({ messages }) {
                 <InsertEmoticon />
                 <form>
                     <input value={input} onChange={e => setInput(e.target.value)} placeholder='Type a message' type='text'/>
-                    <button onClick={sendMessage} type='submit' >Send a message</button>
+                    <button onClick={(e) => {sendMessage(e)}} type='submit' >Send a message</button>
                 </form>
                 <Mic />
             </div>

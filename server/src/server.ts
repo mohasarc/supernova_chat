@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Pusher from 'pusher';
 import cors from 'cors';
 
-import Messages from './dbMessages.js';
+import Messages from './dbMessages';
 
 /*
 * App Config
@@ -25,8 +25,8 @@ const pusher = new Pusher({
 const connection_url = 'mongodb+srv://mohasarc:ABCDEFGH@cluster0.xaosy.mongodb.net/supernovadb?retryWrites=true&w=majority';
 mongoose.connect(connection_url, {
     // useCreateIndex: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    // useNewUrlParser: true,
+    // useUnifiedTopology: true,
 });
 
 const db = mongoose.connection;
@@ -37,12 +37,14 @@ db.once('open', () => {
     changeStream.on('change', (change) => {
         if (change.operationType === 'insert') {
             const messageDetails = change.fullDocument;
-            pusher.trigger('messages', 'inserted', {
-                name: messageDetails.name,
-                message: messageDetails.message,
-                timestamp: messageDetails.timestamp,
-                recieved: messageDetails.recieved,
-            });
+            if (messageDetails !== undefined) {
+                pusher.trigger('messages', 'inserted', {
+                    name: messageDetails.name,
+                    message: messageDetails.message,
+                    timestamp: messageDetails.timestamp,
+                    recieved: messageDetails.recieved,
+                });
+            }
         } else {
             console.error('Error triggering pusher');
         }
@@ -79,9 +81,11 @@ app.get('/api/v1/messages/sync', (req, res) => {
 app.post('/api/v1/messages/new', (req, res) => {
     const dbMessage = req.body;
 
-    Messages.create(dbMessage, (err, data) => {
+    console.log('creating new message');
+
+    Messages.create(dbMessage, (err: any, data: any) => {
         if (err) res.status(500).send(err);
-        else res.status(201).send(data);
+        else res.status(201).send(data); 
     });
 });
 
