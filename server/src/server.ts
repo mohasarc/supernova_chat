@@ -1,9 +1,12 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import Pusher from 'pusher';
+import authRoutes from './routes/auth.route';
+import messageRoutes from './routes/messages.route';
+import dotenv from 'dotenv';
 import cors from 'cors';
 
-import Messages from './dbMessages';
+dotenv.config();
 
 /*
 * App Config
@@ -12,24 +15,20 @@ const app = express();
 const PORT = 3001 || process.env.PORT;
 
 const pusher = new Pusher({
-    appId: "1319421",
-    key: "c46e65cf878ec00f5f7a",
-    secret: "997eaeac9452c097424a",
-    cluster: "eu",
+    appId: '1319421',
+    key: 'c46e65cf878ec00f5f7a',
+    secret: '997eaeac9452c097424a',
+    cluster: 'eu',
     useTLS: true
 });
 
 /*
 * DB Config
 */
-const connection_url = 'mongodb+srv://mohasarc:ABCDEFGH@cluster0.xaosy.mongodb.net/supernovadb?retryWrites=true&w=majority';
-mongoose.connect(connection_url, {
-    // useCreateIndex: true,
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true,
-});
+mongoose.connect(`${process.env.MONGO_URI}`);
 
 const db = mongoose.connection;
+db.on('error', (error) => console.error(error));
 db.once('open', () => {
     console.log('DB connected');
     const msgCollection = db.collection('messagecontents');
@@ -55,14 +54,10 @@ db.once('open', () => {
 * Middleware
 */
 app.use(express.json());
-// app.use(cors);
+app.use(cors());
 
-// Look more into (problematic security-wise)
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    next();
-});
+app.use('/auth', authRoutes);
+app.use('/api/v1/messages', messageRoutes);
 
 /*
 * End points 
@@ -71,24 +66,9 @@ app.get('/', (req, res) => {
     res.status(200).send('hello world');
 });
 
-app.get('/api/v1/messages/sync', (req, res) => {
-    Messages.find((err, data) => {
-        if (err) res.status(500).send(err);
-        else res.status(200).send(data);
-    });
-});
-
-app.post('/api/v1/messages/new', (req, res) => {
-    const dbMessage = req.body;
-
-    console.log('creating new message');
-
-    Messages.create(dbMessage, (err: any, data: any) => {
-        if (err) res.status(500).send(err);
-        else res.status(201).send(data); 
-    });
-});
-
+/*
+* Start server
+*/
 app.listen(PORT, () => {
     console.log('Server started and listening to port: ', PORT);
 })
