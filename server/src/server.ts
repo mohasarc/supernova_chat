@@ -4,6 +4,7 @@ import Pusher from 'pusher';
 import authRoutes from './routes/auth.route';
 import messageRoutes from './routes/messages.route';
 import contactsRoutes from './routes/contacts.route';
+import conversationRoutes from './routes/conversations.route';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -33,8 +34,10 @@ db.on('error', (error) => console.error(error));
 db.once('open', () => {
     console.log('DB connected');
     const msgCollection = db.collection('messagecontents');
-    const changeStream = msgCollection.watch();
-    changeStream.on('change', (change) => {
+    const cnvCollection = db.collection('conversations');
+    const cnvChangeStream = cnvCollection.watch();
+    const msgChangeStream = msgCollection.watch();
+    msgChangeStream.on('change', (change) => {
         if (change.operationType === 'insert') {
             const messageDetails = change.fullDocument;
             if (messageDetails !== undefined) {
@@ -54,7 +57,26 @@ db.once('open', () => {
         } else {
             console.error('Error triggering pusher');
         }
-    })
+    });
+
+    cnvChangeStream.on('change', (change) => {
+        if (change.operationType === 'insert') {
+            const convDetails = change.fullDocument;
+            if (convDetails !== undefined) {
+                console.log('triggering pusher');
+                pusher.trigger('conversations', 'inserted', {
+                    convTitle: convDetails.convTitle,
+                    participants_ids: convDetails.participants_ids,
+                }).then((res) => {
+                    console.log('Pusher finished work: ', res);
+                }).catch((err) => {
+                    console.log('Err in pusher: ', err);
+                });
+            }
+        } else {
+            console.error('Error triggering pusher');
+        }
+    });
 });
 
 /*
@@ -66,6 +88,7 @@ app.use(cors());
 app.use('/auth', authRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/contacts', contactsRoutes);
+app.use('/api/v1/conversations', conversationRoutes);
 
 /*
 * End points 

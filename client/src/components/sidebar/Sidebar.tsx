@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './Sidebar.css'
 import { DonutLarge, Chat, MoreVert, Add, Close, SearchOutlined, Start } from '@mui/icons-material'
 import { Avatar, IconButton } from '@mui/material'
@@ -8,6 +8,14 @@ import PopupDialog from './PopupDialog'
 import SearchContact from './SearchContact'
 import { StateManager } from '../../utils/StateManager'
 import { Actions } from '../../utils/consts'
+import Pusher from 'pusher-js';
+import axios from '../../axios';
+
+interface Conversation {
+    _id: string,
+    convTitle: string,
+    participants_id: string[],
+}
 
 function Sidebar() {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -15,6 +23,7 @@ function Sidebar() {
     const [canCreateConv, setCanCreateConv] = useState<boolean>(false);
     const [needTitle, setNeedTitle] = useState<boolean>(false);
     const [convTitle, setConvTitle] = useState<string>('new Conversation');
+    const [allConvs, setAllConvs] = useState<Conversation[]>([]);
 
     StateManager.getInstance().subscribe(Actions.authUser, () => {
         setUser(StateManager.getInstance().getState(Actions.authUser));
@@ -30,9 +39,41 @@ function Sidebar() {
         StateManager.getInstance().setState(Actions.selectedConv, roomId);
     }
     
-    const handleConversationCreation = () => {
-
+    const handleConversationCreation = async () => {
+        const selectedContacts = StateManager.getInstance().getState(Actions.selectedContacts);
+        console.log('creating a new conv');
+        await axios.post('/api/v1/conversations/new', {
+            convTitle,
+            participants_ids: [...selectedContacts.map((c: User) => c._id), user._id]
+        });
     }
+    
+    useEffect(() => {
+        console.log('the user id: ', user._id);
+        axios.get('/api/v1/conversations/sync', { params: { user_id: user._id } })
+            .then(res =>{
+                setAllConvs([...res.data]);
+                console.log('retrieved convs: ', res.data);
+            });
+            
+    }, [user]);
+
+    useEffect(() => {
+        // const pusher = new Pusher('c46e65cf878ec00f5f7a', {
+        //     cluster: 'eu'
+        // });
+
+        // const channel = pusher.subscribe('conversations');
+        // channel.bind('inserted', function (data: Conversation) {
+        //     console.log('something inserted!');
+        //     setAllConvs([...allConvs, data]);
+        // });
+
+        // return () => {
+        //     channel.unbind_all();
+        //     channel.unsubscribe();
+        // }
+    }, [allConvs]);
 
     return (
         <div className='sidebar'>
@@ -60,9 +101,7 @@ function Sidebar() {
                 </div>
             </div>
             <div className='sidebar__chats'>
-                <SidebarChat selectRoom={handleSelectingRoom} roomName='welc' lastMessage='iiiiii' roomId='13ddas'/>
-                <SidebarChat selectRoom={handleSelectingRoom} roomName='2ff' lastMessage='oh noo...' roomId='9234f'/>
-                <SidebarChat selectRoom={handleSelectingRoom} roomName='hashx' lastMessage='kavvvv' roomId='42edg'/>
+                {allConvs.map(conv => <SidebarChat selectRoom={handleSelectingRoom} roomName={conv.convTitle} lastMessage='iiiiii' roomId={conv._id}/>)}
             </div>
             <div>
                 {openDialog && <PopupDialog>

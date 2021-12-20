@@ -14,8 +14,6 @@ export const addNewMessage = async (req: Request, res: Response) => {
 };
 
 export const syncMessages = async (req: Request, res: Response) => {
-    // TODO will need to add a filter here not to fetch everything
-    console.log('Req body value: ', req.query.room_id);
     Message.find({room_id: req.query.room_id}, (err, data) => {
         if (err) res.status(500).send(err);
         else res.status(200).send(data);
