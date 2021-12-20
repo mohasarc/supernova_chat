@@ -6,12 +6,17 @@ import MoreVertIcon from '@material-ui/icons/MoreVert'
 import { Avatar, IconButton } from '@material-ui/core'
 import { SearchOutlined } from '@material-ui/icons'
 import SidebarChat from './SidebarChat'
+import {User} from '../../App'
 
-function Sidebar() {
+function Sidebar({user, setChatId}: {user: User, setChatId: Function}) {
+    function handleSelectingRoom(roomId: string) {
+        setChatId(roomId);
+    }
+
     return (
         <div className='sidebar'>
             <div className='sidebar__header'>
-                <Avatar src='https://static.remove.bg/remove-bg-web/6c5ea334216f9ded64486efb0e2a4421757cbce5/assets/start_remove-c851bdf8d3127a24e2d137a55b1b427378cd17385b01aec6e59d5d4b5f39d2ec.png' />
+                <Avatar src={user.avatar} />
                 <div className='sidebar__headerRight'>
                     <IconButton>
                         <DonutLargeIcon />
@@ -31,9 +36,9 @@ function Sidebar() {
                 </div>
             </div>
             <div className='sidebar__chats'>
-                <SidebarChat />
-                <SidebarChat />
-                <SidebarChat />
+                <SidebarChat selectRoom={handleSelectingRoom} roomName='welc' lastMessage='iiiiii' roomId='13ddas'/>
+                <SidebarChat selectRoom={handleSelectingRoom} roomName='2ff' lastMessage='oh noo...' roomId='9234f'/>
+                <SidebarChat selectRoom={handleSelectingRoom} roomName='hashx' lastMessage='kavvvv' roomId='42edg'/>
             </div>
         </div>
     )

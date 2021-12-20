@@ -37,11 +37,16 @@ db.once('open', () => {
         if (change.operationType === 'insert') {
             const messageDetails = change.fullDocument;
             if (messageDetails !== undefined) {
+                console.log('triggering pusher');
                 pusher.trigger('messages', 'inserted', {
                     name: messageDetails.name,
                     message: messageDetails.message,
                     timestamp: messageDetails.timestamp,
                     recieved: messageDetails.recieved,
+                }).then((res) => {
+                    console.log('Pusher finished work: ', res);
+                }).catch((err) => {
+                    console.log('Err in pusher: ', err);
                 });
             }
         } else {
