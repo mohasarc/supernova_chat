@@ -1,8 +1,9 @@
 import React from 'react'
-import { useState } from "react";
 import { AxiosResponse } from "axios";
 import axios from '../axios'
 import GoogleLogin from "react-google-login";
+import { StateManager } from '../utils/StateManager';
+import { Actions } from '../utils/consts';
 
 console.log('GoogleClient: ', process.env.REACT_APP_CLIENT_ID)
 
@@ -18,18 +19,15 @@ interface User {
     avatar: string;
 }
 
-const GoogleAuth = ({setUser: setTheUser, setLoggedIn}:{setUser: Function, setLoggedIn: Function}) => {
-    const [user, setUser] = useState<User | null>(null);
+const GoogleAuth = () => {
     const onSuccess = async (res: any) => {
-        console.log('on success triggered!');
         try {
             const result: AxiosResponse<AuthResponse> = await axios.post("/auth/", {
                 token: res?.tokenId,
             });
 
-            setUser(result.data.user);
-            setTheUser(result.data.user);
-            setLoggedIn(true);
+            StateManager.getInstance().setState(Actions.loggedIn, true);
+            StateManager.getInstance().setState(Actions.authUser, result.data.user);
         } catch (err) {
             console.log(err);
         }
@@ -38,22 +36,11 @@ const GoogleAuth = ({setUser: setTheUser, setLoggedIn}:{setUser: Function, setLo
     return (
         <div className="h-screen w-screen flex items-center justify-center flex-col">
             <div>
-                {!user && (
-                    <GoogleLogin
-                        clientId={`${process.env.REACT_APP_CLIENT_ID}`}
-                        onSuccess={onSuccess}
-                        onFailure={(err) => {console.log('auth failed: ', err)}}
-                    />
-                )}
-
-                {/* {user && (
-                    <>
-                        <img alt='user avatar' src={user.avatar} className="rounded-full" />
-                        <h1 className="text-xl font-semibold text-center my-5">
-                            {user.name}
-                        </h1>
-                    </>
-                )} */}
+                <GoogleLogin
+                    clientId={`${process.env.REACT_APP_CLIENT_ID}`}
+                    onSuccess={onSuccess}
+                    onFailure={(err) => {console.log('auth failed: ', err)}}
+                />
             </div>
         </div>
     );

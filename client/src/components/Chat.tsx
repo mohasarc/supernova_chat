@@ -1,21 +1,38 @@
-import { Avatar, IconButton } from '@material-ui/core'
-import { SearchOutlined, AttachFile, MoreVert, InsertEmoticon, Mic } from '@material-ui/icons'
+import { Avatar, IconButton } from '@mui/material'
+import { SearchOutlined, AttachFile, MoreVert, InsertEmoticon, Mic } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import Pusher from 'pusher-js';
 import './Chat.css'
 import axios from '../axios';
 import { User, Message } from '../App';
+import { StateManager } from '../utils/StateManager';
+import { Actions } from '../utils/consts';
 
-function Chat({ chatId, user }: { chatId: string, user: User }) {
+function Chat() {
     const [input, setInput] = useState('');
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [convId, setConvId] = useState<string>(StateManager.getInstance().getState(Actions.selectedConv) || '')
+    const [messages, setMessages] = useState<Message[]>(StateManager.getInstance().getState(Actions.convs+convId)?.messages || []);
+    const [user, setUser] = useState<User>(StateManager.getInstance().getState(Actions.authUser) || {});
+    
+    StateManager.getInstance().subscribe(Actions.authUser, () => {
+        setUser(StateManager.getInstance().getState(Actions.authUser));
+    });
+
+    StateManager.getInstance().subscribe(Actions.convs+convId, () => {
+        setMessages(StateManager.getInstance().getState(Actions.convs+convId)?.messages || messages);
+    });
+
+    StateManager.getInstance().subscribe(Actions.selectedConv, () => {
+        setConvId(StateManager.getInstance().getState(Actions.selectedConv));
+    });
 
     useEffect(() => {
-        axios.get('/api/v1/messages/sync', { params: { room_id: chatId } })
+        axios.get('/api/v1/messages/sync', { params: { room_id: convId } })
             .then(res => {
-                setMessages([...res.data]);
+                const conv = StateManager.getInstance().getState(Actions.convs+convId);
+                StateManager.getInstance().setState(Actions.convs+convId, {...conv, messages: [...res.data]});
             })
-    }, [chatId]);
+    }, [convId]);
 
     useEffect(() => {
         const pusher = new Pusher('c46e65cf878ec00f5f7a', {
@@ -41,7 +58,7 @@ function Chat({ chatId, user }: { chatId: string, user: User }) {
             message: input,
             sender_id: user._id,
             sender_name: user.name,
-            room_id: chatId,
+            room_id: convId,
             timestamp: (new Date()).toString(),
         });
 
@@ -53,7 +70,7 @@ function Chat({ chatId, user }: { chatId: string, user: User }) {
             <div className='chat__header'>
                 <Avatar />
                 <div className='chat__headerInfo'>
-                    <h3>Room Name{'-' + chatId}</h3>
+                    <h3>Room Name{'-' + convId}</h3>
                     <p>last seen at ...</p>
                 </div>
 

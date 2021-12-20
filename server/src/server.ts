@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Pusher from 'pusher';
 import authRoutes from './routes/auth.route';
 import messageRoutes from './routes/messages.route';
+import contactsRoutes from './routes/contacts.route';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -39,10 +40,11 @@ db.once('open', () => {
             if (messageDetails !== undefined) {
                 console.log('triggering pusher');
                 pusher.trigger('messages', 'inserted', {
-                    name: messageDetails.name,
                     message: messageDetails.message,
                     timestamp: messageDetails.timestamp,
-                    recieved: messageDetails.recieved,
+                    sender_id: messageDetails.sender_id,
+                    sender_name: messageDetails.sender_name,
+                    room_id: messageDetails.room_id,
                 }).then((res) => {
                     console.log('Pusher finished work: ', res);
                 }).catch((err) => {
@@ -63,6 +65,7 @@ app.use(cors());
 
 app.use('/auth', authRoutes);
 app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/contacts', contactsRoutes);
 
 /*
 * End points 
