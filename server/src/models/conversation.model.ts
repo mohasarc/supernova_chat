@@ -17,6 +17,10 @@ const conversationSchema = new mongoose.Schema({
     lastMessage: {
         type: String,
         required: false,
+    },
+    convAvatar: {
+        type: String,
+        required: false,
     }
 });
 

@@ -29,6 +29,7 @@ export interface Conversation {
     convTitle: string,
     participants_id: string[],
     lastMessage: string,
+    convAvatar: string,
 }
 
 function App() {

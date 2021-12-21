@@ -11,6 +11,8 @@ import { Actions } from '../../utils/consts'
 import Pusher from 'pusher-js';
 import axios from '../../axios';
 import { Conversation } from '../../App';
+import { AvatarGenerator } from 'random-avatar-generator';
+const generator = new AvatarGenerator();
 
 function Sidebar() {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -27,7 +29,7 @@ function Sidebar() {
     StateManager.getInstance().subscribe(Actions.selectedContacts, () => {
         const selectedContacts = StateManager.getInstance().getState(Actions.selectedContacts);
         setCanCreateConv(selectedContacts.length > 0);
-        setNeedTitle(selectedContacts.length > 1);
+        setNeedTitle(selectedContacts.length > 0);
     });
 
     StateManager.getInstance().subscribe(Actions.allConvs, () => {
@@ -40,12 +42,23 @@ function Sidebar() {
     }
     
     const handleConversationCreation = async () => {
-        const selectedContacts = StateManager.getInstance().getState(Actions.selectedContacts);
+        const selectedContacts: User[] = StateManager.getInstance().getState(Actions.selectedContacts);
         console.log('creating a new conv');
+        let theConvTitle = convTitle;
+        let convAvatar = generator.generateRandomAvatar(convTitle);
+
+        if (selectedContacts.length === 1) {
+            // theConvTitle = selectedContacts[0].name;
+            // convAvatar = selectedContacts[0].avatar;
+        }
+
         await axios.post('/api/v1/conversations/new', {
-            convTitle,
+            convTitle: theConvTitle,
+            convAvatar,
             participants_ids: [...selectedContacts.map((c: User) => c._id), user._id]
         });
+
+        setOpenDialog(false);
     }
     
     // useEffect(() => {
@@ -91,7 +104,7 @@ function Sidebar() {
                 </div>
             </div>
             <div className='sidebar__chats'>
-                {allConvs.map(conv => <SidebarChat selectRoom={handleSelectingRoom} roomName={conv.convTitle} lastMessage={conv.lastMessage} conv_id={conv._id}/>)}
+                {allConvs.map(conv => <SidebarChat avatar={conv.convAvatar} selectRoom={handleSelectingRoom} roomName={conv.convTitle} lastMessage={conv.lastMessage} conv_id={conv._id}/>)}
             </div>
             <div>
                 {openDialog && <PopupDialog>

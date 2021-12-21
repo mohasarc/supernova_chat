@@ -45,7 +45,7 @@ function Chat() {
     return (
         <div className='chat'>
             <div className='chat__header'>
-                <Avatar />
+                <Avatar src={curConv.convAvatar}/>
                 <div className='chat__headerInfo'>
                     <h3>{curConv.convTitle}</h3>
                     {/* <p>last seen at ...</p> */}

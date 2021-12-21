@@ -34,7 +34,7 @@ const GoogleAuth = () => {
     };
 
     return (
-        <div className="h-screen w-screen flex items-center justify-center flex-col">
+        <div className='app__auth'>
             <div>
                 <GoogleLogin
                     clientId={`${process.env.REACT_APP_CLIENT_ID}`}

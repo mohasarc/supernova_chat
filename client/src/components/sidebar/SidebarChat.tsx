@@ -9,9 +9,10 @@ interface SidebarChatInterface {
     roomName: string,
     lastMessage: string,
     conv_id: string,
+    avatar: string,
 }
 
-function SidebarChat({selectRoom, roomName, lastMessage, conv_id}: SidebarChatInterface) {
+function SidebarChat({selectRoom, roomName, lastMessage, conv_id, avatar}: SidebarChatInterface) {
     const [selected, setSelected] = useState<boolean>(false);
 
     StateManager.getInstance().subscribe(Actions.selectedConv, () => {
@@ -21,7 +22,7 @@ function SidebarChat({selectRoom, roomName, lastMessage, conv_id}: SidebarChatIn
 
     return (
         <div className={`sidebarChat ${selected && 'selected'}`} onClick={() => {if (selectRoom) selectRoom(conv_id)}}>
-            <Avatar />
+            <Avatar src={avatar}/>
             <div className='sidebarChat__info'>
                 <h2>{roomName}</h2>
                 <p>{lastMessage}</p>
