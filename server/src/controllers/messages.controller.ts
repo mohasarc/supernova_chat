@@ -14,7 +14,7 @@ export const addNewMessage = async (req: Request, res: Response) => {
 };
 
 export const syncMessages = async (req: Request, res: Response) => {
-    Message.find({room_id: req.query.room_id}, (err, data) => {
+    Message.find({conv_id: req.query.conv_id}, (err, data) => {
         if (err) res.status(500).send(err);
         else res.status(200).send(data);
     });

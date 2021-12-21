@@ -14,6 +14,10 @@ const conversationSchema = new mongoose.Schema({
     participants_ids: [{
         type: String,
     }],
+    lastMessage: {
+        type: String,
+        required: false,
+    }
 });
 
 export default mongoose.model<ConversationDocument>('conversations', conversationSchema);

@@ -27,7 +27,7 @@ const GoogleAuth = () => {
             });
 
             StateManager.getInstance().setState(Actions.loggedIn, true);
-            StateManager.getInstance().setState(Actions.authUser, result.data.user);
+            StateManager.getInstance().setState(Actions.authUser, {...result.data.user});
         } catch (err) {
             console.log(err);
         }

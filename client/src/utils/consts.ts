@@ -4,4 +4,6 @@ export const Actions = {
     convs: 'conversations',
     selectedConv: 'selectedConv',
     selectedContacts: 'selectedContacts',
+    allConvs: 'allConversations',
+    messages: 'messages',
 }

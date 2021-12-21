@@ -14,9 +14,9 @@ dotenv.config();
 * App Config
 */
 const app = express();
-const PORT = 3001 || process.env.PORT;
+const PORT = 3002 || process.env.PORT;
 
-const pusher = new Pusher({
+export const pusher = new Pusher({
     appId: '1319421',
     key: 'c46e65cf878ec00f5f7a',
     secret: '997eaeac9452c097424a',
@@ -41,15 +41,15 @@ db.once('open', () => {
         if (change.operationType === 'insert') {
             const messageDetails = change.fullDocument;
             if (messageDetails !== undefined) {
-                console.log('triggering pusher');
+                console.log('Pusher: some msg changed');
                 pusher.trigger('messages', 'inserted', {
                     message: messageDetails.message,
                     timestamp: messageDetails.timestamp,
                     sender_id: messageDetails.sender_id,
                     sender_name: messageDetails.sender_name,
-                    room_id: messageDetails.room_id,
+                    conv_id: messageDetails.conv_id,
                 }).then((res) => {
-                    console.log('Pusher finished work: ', res);
+                    console.log('Pusher finished work notofying msg change ');
                 }).catch((err) => {
                     console.log('Err in pusher: ', err);
                 });
@@ -60,22 +60,22 @@ db.once('open', () => {
     });
 
     cnvChangeStream.on('change', (change) => {
-        if (change.operationType === 'insert') {
+        // if (change.operationType === 'insert' || change.operationType === 'update') {
             const convDetails = change.fullDocument;
             if (convDetails !== undefined) {
-                console.log('triggering pusher');
-                pusher.trigger('conversations', 'inserted', {
+                console.log('Pusher: some conv changed!!');
+                pusher.trigger('conversations', 'inserted|updated', {
                     convTitle: convDetails.convTitle,
                     participants_ids: convDetails.participants_ids,
                 }).then((res) => {
-                    console.log('Pusher finished work: ', res);
+                    console.log('Pusher finished work notofying conv change');
                 }).catch((err) => {
                     console.log('Err in pusher: ', err);
                 });
             }
-        } else {
-            console.error('Error triggering pusher');
-        }
+        // } else {
+        //     console.error('Error triggering pusher');
+        // }
     });
 });
 

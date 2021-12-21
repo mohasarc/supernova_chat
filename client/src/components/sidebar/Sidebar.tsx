@@ -10,12 +10,7 @@ import { StateManager } from '../../utils/StateManager'
 import { Actions } from '../../utils/consts'
 import Pusher from 'pusher-js';
 import axios from '../../axios';
-
-interface Conversation {
-    _id: string,
-    convTitle: string,
-    participants_id: string[],
-}
+import { Conversation } from '../../App';
 
 function Sidebar() {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -23,7 +18,7 @@ function Sidebar() {
     const [canCreateConv, setCanCreateConv] = useState<boolean>(false);
     const [needTitle, setNeedTitle] = useState<boolean>(false);
     const [convTitle, setConvTitle] = useState<string>('new Conversation');
-    const [allConvs, setAllConvs] = useState<Conversation[]>([]);
+    const [allConvs, setAllConvs] = useState<Conversation[]>(StateManager.getInstance().getState(Actions.allConvs) || []);
 
     StateManager.getInstance().subscribe(Actions.authUser, () => {
         setUser(StateManager.getInstance().getState(Actions.authUser));
@@ -33,6 +28,11 @@ function Sidebar() {
         const selectedContacts = StateManager.getInstance().getState(Actions.selectedContacts);
         setCanCreateConv(selectedContacts.length > 0);
         setNeedTitle(selectedContacts.length > 1);
+    });
+
+    StateManager.getInstance().subscribe(Actions.allConvs, () => {
+        console.log('SIDEBAR: all conversations array updated!!');
+        setAllConvs(StateManager.getInstance().getState(Actions.allConvs));
     });
     
     const handleSelectingRoom = (roomId: string) => {
@@ -48,17 +48,7 @@ function Sidebar() {
         });
     }
     
-    useEffect(() => {
-        console.log('the user id: ', user._id);
-        axios.get('/api/v1/conversations/sync', { params: { user_id: user._id } })
-            .then(res =>{
-                setAllConvs([...res.data]);
-                console.log('retrieved convs: ', res.data);
-            });
-            
-    }, [user]);
-
-    useEffect(() => {
+    // useEffect(() => {
         // const pusher = new Pusher('c46e65cf878ec00f5f7a', {
         //     cluster: 'eu'
         // });
@@ -73,7 +63,7 @@ function Sidebar() {
         //     channel.unbind_all();
         //     channel.unsubscribe();
         // }
-    }, [allConvs]);
+    // }, [allConvs]);
 
     return (
         <div className='sidebar'>
@@ -101,7 +91,7 @@ function Sidebar() {
                 </div>
             </div>
             <div className='sidebar__chats'>
-                {allConvs.map(conv => <SidebarChat selectRoom={handleSelectingRoom} roomName={conv.convTitle} lastMessage='iiiiii' roomId={conv._id}/>)}
+                {allConvs.map(conv => <SidebarChat selectRoom={handleSelectingRoom} roomName={conv.convTitle} lastMessage={conv.lastMessage} conv_id={conv._id}/>)}
             </div>
             <div>
                 {openDialog && <PopupDialog>

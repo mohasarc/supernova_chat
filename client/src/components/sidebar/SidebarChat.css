@@ -5,6 +5,10 @@
     border-bottom: 1px solid #f6f6f6;
 }
 
+.selected {
+    background-color: #ebebeb;
+}
+
 .sidebarChat:hover {
     background-color: #ebebeb;
 }
